@@ -1,10 +1,8 @@
 package startup
 
-import (
-	"github.com/cjlapao/common-go/executionctx"
-)
+import "github.com/cjlapao/common-go/execution_context"
 
-var providers = executionctx.GetServiceProvider()
+var providers = execution_context.Get().Services
 
 func Init() {
 	// Add your initialization section here

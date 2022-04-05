@@ -20,21 +20,21 @@ jobs:
       env:
         GOOS: linux
         GOARCH: amd64
-      run: go build -o ${{ github.event.repository.name }}
+      run: go build -o tls-certificate-repository
     - name: Zip Linux x64
       id: zip_linux_x64
       run: |
-        zip --junk-paths ${{ github.event.repository.name }}_linux_x64 ${{ github.event.repository.name }}
+        zip --junk-paths tls-certificate-repository_linux_x64 tls-certificate-repository
     - name: Build Windows x64
       id: build_windows_x64
       env:
         GOOS: windows
         GOARCH: amd64
-      run: go build -o ${{ github.event.repository.name }}.exe
+      run: go build -o tls-certificate-repository.exe
     - name: Zip Windows x64
       id: zip_windows_x64
       run: |
-        zip --junk-paths ${{ github.event.repository.name }}_win_x64 ${{ github.event.repository.name }}.exe
+        zip --junk-paths tls-certificate-repository_win_x64 tls-certificate-repository.exe
     - name: Branch name
       id: branch_name
       run: |
@@ -58,8 +58,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./${{ github.event.repository.name }}_linux_x64.zip
-        asset_name: ${{ github.event.repository.name }}_linux_x64.zip
+        asset_path: ./tls-certificate-repository_linux_x64.zip
+        asset_name: tls-certificate-repository_linux_x64.zip
         asset_content_type: application/zip
     - name: Upload Windows x64 Asset
       id: upload-windows-x64-asset 
@@ -68,6 +68,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./${{ github.event.repository.name }}_win_x64.zip
-        asset_name: ${{ github.event.repository.name }}_win_x64.zip
+        asset_path: ./tls-certificate-repository_win_x64.zip
+        asset_name: tls-certificate-repository_win_x64.zip
         asset_content_type: application/zip        
