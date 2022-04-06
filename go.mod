@@ -1,8 +1,12 @@
-module github.com/cjlapao/go-template
+module github.com/cjlapao/tls-certificate-generator-go
 
 go 1.18
 
-require github.com/cjlapao/common-go v0.0.19
+require (
+	github.com/cjlapao/common-go v0.0.19
+	gopkg.in/yaml.v2 v2.4.0
+	software.sslmate.com/src/go-pkcs12 v0.1.0
+)
 
 require (
 	github.com/fatih/color v1.13.0 // indirect
@@ -11,7 +15,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pascaldekloe/jwt v1.10.0 // indirect
+	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
 	golang.org/x/sys v0.0.0-20211123173158-ef496fb156ab // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

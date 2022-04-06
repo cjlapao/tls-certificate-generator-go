@@ -9,12 +9,14 @@ import (
 	"github.com/cjlapao/common-go/helper"
 	"github.com/cjlapao/common-go/log"
 	"github.com/cjlapao/common-go/version"
-	"github.com/cjlapao/go-template/startup"
+	"github.com/cjlapao/tls-certificate-generator-go/config"
+	"github.com/cjlapao/tls-certificate-generator-go/generator"
+	"github.com/cjlapao/tls-certificate-generator-go/startup"
 )
 
 var ctx = execution_context.Get()
 var logger = log.Get()
-var config = execution_context.Get().Configuration
+var configSvc = execution_context.Get().Configuration
 
 func main() {
 	ctx.Services.Version.Major = 0
@@ -43,11 +45,83 @@ func main() {
 	configFile := helper.GetFlagValue("config", "")
 	if configFile != "" {
 		logger.Command("Loading configuration from " + configFile)
-		config.LoadFromFile(configFile)
+		configSvc.LoadFromFile(configFile)
 	}
 
 	defer func() {
 	}()
 
 	startup.Init()
+
+	generateCertificates()
+}
+
+func generateCertificates() {
+	config := config.Init()
+	config.ReadFromFile()
+
+	fmt.Println("|- Root")
+	needsSaving := false
+	if config.Root != nil && len(config.Root) > 0 {
+		for _, rootCert := range config.Root {
+			x509RootCert := generator.X509RootCertificate{}
+			x509RootCert.Name = rootCert.Name
+			if rootCert.PemCertificate == "" {
+				x509RootCert.Generate(*rootCert.Config)
+				rootCert.PemCertificate = string(x509RootCert.Pem)
+				rootCert.PemPrivateKey = string(x509RootCert.PrivateKeyPem)
+				needsSaving = true
+			} else {
+				x509RootCert.Configuration = *rootCert.Config
+				x509RootCert.Parse(rootCert.PemCertificate, rootCert.PemPrivateKey)
+			}
+
+			fmt.Println("|  |- " + rootCert.Name)
+			if config.OutputToFile {
+				x509RootCert.SaveToFile()
+			}
+			x509RootCert.Install()
+			for _, intermediateCA := range rootCert.IntermediateCertificates {
+				x509IntermediateCert := generator.X509IntermediateCertificate{}
+				x509IntermediateCert.Name = intermediateCA.Name
+				if intermediateCA.PemCertificate == "" {
+					x509IntermediateCert.Generate(&x509RootCert, *intermediateCA.Config)
+					intermediateCA.PemCertificate = string(x509IntermediateCert.Pem)
+					intermediateCA.PemPrivateKey = string(x509IntermediateCert.PrivateKeyPem)
+					needsSaving = true
+				} else {
+					x509IntermediateCert.Configuration = *intermediateCA.Config
+					x509IntermediateCert.Parse(intermediateCA.PemCertificate, intermediateCA.PemPrivateKey)
+				}
+				fmt.Println("|  |  |- " + intermediateCA.Name)
+				if config.OutputToFile {
+					x509IntermediateCert.SaveToFile()
+				}
+				x509IntermediateCert.Install()
+
+				for _, serverCert := range intermediateCA.Certificates {
+					x509ServerCert := generator.X509ServerCertificate{}
+					x509ServerCert.Name = serverCert.Name
+					if serverCert.PemCertificate == "" {
+						x509ServerCert.Generate(&x509IntermediateCert, *serverCert.Config)
+						serverCert.PemCertificate = string(x509ServerCert.Pem)
+						serverCert.PemPrivateKey = string(x509ServerCert.PrivateKeyPem)
+						needsSaving = true
+					} else {
+						x509ServerCert.Configuration = *serverCert.Config
+						x509ServerCert.Parse(serverCert.PemCertificate, serverCert.PemPrivateKey)
+					}
+					fmt.Println("|  |  |  |- " + serverCert.Name)
+					if config.OutputToFile {
+						x509ServerCert.SaveToFile()
+					}
+					x509ServerCert.Install()
+				}
+			}
+		}
+	}
+	if needsSaving {
+		config.SaveToFile()
+	}
+
 }

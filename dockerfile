@@ -7,7 +7,7 @@ FROM golang:alpine AS builder
 # Git is required for fetching the dependencies.
 RUN apk update && apk add --no-cache git
 
-WORKDIR /go/src/cjlapao/go-template
+WORKDIR /go/src/cjlapao/tls-certificate-generator
 
 COPY . .
 
@@ -15,7 +15,7 @@ COPY . .
 RUN go get -d -v
 
 # Build the binary.
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/go-template
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/tls-certificate-generator
 
 ############################
 # STEP 2 build a small image
@@ -23,9 +23,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/g
 FROM scratch
 
 # Copy our static executable.
-COPY --from=builder /go/bin/go-template /go/bin/go-template
+COPY --from=builder /go/bin/tls-certificate-generator /go/bin/tls-certificate-generator
 
-# Run the project binary.
-EXPOSE 5000
 
-ENTRYPOINT ["/go/bin/go-template"]
+ENTRYPOINT ["/go/bin/tls-certificate-generator"]
