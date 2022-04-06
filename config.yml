@@ -1,0 +1,72 @@
+rootCertificates:
+- name: ACME Root CA
+  config:
+    country: Moon
+    state: Dark Side
+    organization: ACME Inc.
+    commonName: ACME Root CA
+    city: Bright
+    fqdns:
+    - example.com
+    ipAddresses:
+    - 127.0.0.1
+    organizationalUnit: ACME IT
+    adminEmailAddress: admin@example.com
+    expiresInYears: 5
+    keySize: 2048
+    signatureAlgorithm: 4
+    password: ""
+  intermediateCertificates:
+  - name: ACME Intermediate CA
+    config:
+      country: Moon
+      state: Dark Side
+      organization: ACME Inc.
+      commonName: ACME Intermediate CA
+      city: Bright
+      fqdns:
+      - example.com
+      ipAddresses:
+      - 127.0.0.1
+      organizationalUnit: ACME IT
+      adminEmailAddress: admin@example.com
+      expiresInYears: 5
+      keySize: 2048
+      signatureAlgorithm: 4
+      password: ""
+    certificates:
+    - name: ACME Localhost
+      config:
+        country: Moon
+        state: Dark Side
+        organization: ACME Inc.
+        commonName: ACME Localhost
+        city: Bright
+        fqdns:
+        - localhost
+        - '*.localhost'
+        ipAddresses: []
+        organizationalUnit: ACME IT
+        adminEmailAddress: admin@example.com
+        expiresInYears: 1
+        keySize: 2048
+        signatureAlgorithm: 4
+        password: ""
+    - name: ACME example.com
+      config:
+        country: Moon
+        state: Dark Side
+        organization: ACME Inc.
+        commonName: ACME Example
+        city: Bright
+        fqdns:
+        - example.com
+        - '*.example.com'
+        ipAddresses: []
+        organizationalUnit: ACME IT
+        adminEmailAddress: admin@example.com
+        expiresInYears: 1
+        keySize: 2048
+        signatureAlgorithm: 4
+        password: changeit
+outputToFile: true
