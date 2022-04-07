@@ -79,21 +79,13 @@ func (serverCert *X509ServerCertificate) Generate(intermediateCA *X509Intermedia
 	}
 
 	serverCertificateTemplate := x509.Certificate{
-		SerialNumber: generateSerialNumber(),
-		Subject:      subject,
-		NotBefore:    time.Now().Add(-10 * time.Second),
-		NotAfter:     time.Now().AddDate(config.ExpiresInYears, 0, 0),
-		KeyUsage:     x509.KeyUsageCRLSign,
-		ExtKeyUsage: []x509.ExtKeyUsage{
-			x509.ExtKeyUsageServerAuth,
-			x509.ExtKeyUsageClientAuth,
-		},
+		SerialNumber:       generateSerialNumber(),
+		Subject:            subject,
+		NotBefore:          time.Now().Add(-10 * time.Second),
+		NotAfter:           time.Now().AddDate(config.ExpiresInYears, 0, 0),
 		IsCA:               false,
 		SignatureAlgorithm: config.SignatureAlgorithm.ToX509SignatureAlgorithm(),
-		DNSNames:           config.FQDNs,
-		PolicyIdentifiers: []asn1.ObjectIdentifier{
-			ServerAuthentication, ClientAuthentication,
-		},
+		KeyUsage:           x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
 	}
 
 	if config.FQDNs != nil && len(config.FQDNs) > 0 {
@@ -115,21 +107,21 @@ func (serverCert *X509ServerCertificate) Generate(intermediateCA *X509Intermedia
 	subjectKeyId, err := generateSubjectKeyId(priv)
 	if err == nil {
 		serverCertificateTemplate.SubjectKeyId = subjectKeyId
-		serverCertificateTemplate.AuthorityKeyId = subjectKeyId
+		// serverCertificateTemplate.AuthorityKeyId = subjectKeyId
 	}
 
-	intermediateCertificate, intermediatePemCertificate := generateCertificate(&serverCertificateTemplate, intermediateCA.Certificate, &priv.PublicKey, intermediateCA.PrivateKey)
-	csr, err := generateCertificateRequest(intermediateCertificate, priv)
+	serverCertificate, serverPemCertificate := generateCertificate(&serverCertificateTemplate, intermediateCA.Certificate, &priv.PublicKey, intermediateCA.PrivateKey)
+	csr, err := generateCertificateRequest(serverCertificate, priv)
 
 	serverCert.PrivateKey = priv
-	serverCert.Certificate = intermediateCertificate
+	serverCert.Certificate = serverCertificate
 	serverCert.Configuration = config
-	serverCert.Pem = intermediatePemCertificate
+	serverCert.Pem = serverPemCertificate
 	serverCert.Pem = append(serverCert.Pem, intermediateCA.Pem...)
 	serverCert.Csr = csr
 	serverCert.PrivateKeyPem = generatePemPrivateKey(priv)
 
-	return intermediateCertificate, intermediatePemCertificate, priv
+	return serverCertificate, serverPemCertificate, priv
 }
 
 func (serverCert *X509ServerCertificate) LoadFromFile() error {
