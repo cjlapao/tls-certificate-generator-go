@@ -80,9 +80,10 @@ func (intermediateCA *X509IntermediateCertificate) Generate(rootCA *X509RootCert
 		Subject:      subject,
 		NotBefore:    time.Now().Add(-10 * time.Second),
 		NotAfter:     time.Now().AddDate(config.ExpiresInYears, 0, 0),
-		KeyUsage:     x509.KeyUsageCRLSign | x509.KeyUsageCertSign,
+		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		ExtKeyUsage: []x509.ExtKeyUsage{
-			x509.ExtKeyUsageOCSPSigning,
+			x509.ExtKeyUsageServerAuth,
+			x509.ExtKeyUsageClientAuth,
 		},
 		IsCA:                  true,
 		MaxPathLen:            1,
@@ -91,7 +92,9 @@ func (intermediateCA *X509IntermediateCertificate) Generate(rootCA *X509RootCert
 		DNSNames:              config.FQDNs,
 		BasicConstraintsValid: true,
 		PolicyIdentifiers: []asn1.ObjectIdentifier{
-			OCSPSigning,
+			policy4,
+			policy5,
+			policy6,
 		},
 	}
 
