@@ -85,7 +85,15 @@ func (serverCert *X509ServerCertificate) Generate(intermediateCA *X509Intermedia
 		NotAfter:           time.Now().AddDate(config.ExpiresInYears, 0, 0),
 		IsCA:               false,
 		SignatureAlgorithm: config.SignatureAlgorithm.ToX509SignatureAlgorithm(),
-		KeyUsage:           x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
+		KeyUsage:           x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage: []x509.ExtKeyUsage{
+			x509.ExtKeyUsageServerAuth,
+		},
+		PolicyIdentifiers: []asn1.ObjectIdentifier{
+			policy5,
+			policy4,
+		},
+		BasicConstraintsValid: true,
 	}
 
 	if config.FQDNs != nil && len(config.FQDNs) > 0 {
@@ -107,7 +115,7 @@ func (serverCert *X509ServerCertificate) Generate(intermediateCA *X509Intermedia
 	subjectKeyId, err := generateSubjectKeyId(priv)
 	if err == nil {
 		serverCertificateTemplate.SubjectKeyId = subjectKeyId
-		// serverCertificateTemplate.AuthorityKeyId = subjectKeyId
+		serverCertificateTemplate.AuthorityKeyId = subjectKeyId
 	}
 
 	serverCertificate, serverPemCertificate := generateCertificate(&serverCertificateTemplate, intermediateCA.Certificate, &priv.PublicKey, intermediateCA.PrivateKey)
